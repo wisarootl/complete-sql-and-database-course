@@ -173,6 +173,28 @@ flowchart LR
 ## SQL Commands
 
 - DCL (Data Control Language) : `GRANT`, `REVOKE`
-- DDL (Data Definition Language) : `CREATE`, `ALTER`, `DROP`, `RENAME`, `TRUNCATE`, `COMMENT`, ``
+- DDL (Data Definition Language) : `CREATE`, `ALTER`, `DROP`, `RENAME`, `TRUNCATE`, `COMMENT`
 - DQL (Data Query Language) : `SELECT`
 - DML (Data Modification Language) : `INSERT`, `UPDATE`, `DELETE`, `MERGE`, `CALL`, `EXPLAIN PLAN`, `LOCK TABLE`
+
+## Function in SQL
+
+- Aggregate: operate many records to produce 1 value
+
+  - `AVG()`, `COUNT()`, `MIN()`, `MAX()`, `SUM()`
+
+- Scalar: operate on each record independently
+
+  - `CONCAT`
+
+## Filtering
+
+- WHERE
+
+## Logical Operator
+
+- AND, OR, NOT
+
+- Operation: >, <, <=, >=, =, !=
+
+- Order of operations: FROM -> WHERE -> SELECT
