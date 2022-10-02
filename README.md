@@ -198,3 +198,960 @@ flowchart LR
 - Operation: >, <, <=, >=, =, !=
 
 - Order of operations: FROM -> WHERE -> SELECT
+
+- Operator Precedence (priority of operators) If same priority, operate (left to right) or (right to left)
+  - Parentheses
+  - Multiplication / Division
+  - Subtraction / Addition
+  - NOT
+  - AND
+  - OR
+
+## Checking for empty value
+
+- Null represent missing/empty value
+
+- What ever we do with null, it always be null
+- 1 = 1 (true), 1 != 1 (false)
+- null = null (null), null <> null (null)
+
+1. filter out null : use `is` instead of `!=`
+
+```sql
+SELECT * FROM <table>
+WHERE <field> IS [NOT] NULL
+```
+
+2. replace null
+
+```sql
+SELECT COALESCE(<column>, 'Empty') AS column_alias
+FROM <table>
+```
+
+```sql
+SELECT COALESCE(<column1>, <column2>, <column3>, 'Empty') AS column_alias
+FROM <table>
+```
+
+## 3-value logic
+
+- Logical Expression in sQL can be TRUE, FALSE, UNKNOWN
+
+## BETWEEN AND
+
+```sql
+SELECT <column>
+FROM <table>
+WHERE <column> BETWEEN x AND y
+-- equivalent to
+-- WHERE <column> >= X and <column> <= Y
+```
+
+## IN
+
+```sql
+SELECT *
+FROM <table>
+WHERE <column> IN (value1, value2)
+-- equivalent to
+-- WHERE <column> == value1 or <column> == value2
+```
+
+## LIKE
+
+- partial lookup
+
+```sql
+SELECT first_name FROM employees
+FROM first_name LIKE 'M%'
+```
+
+- `M%` : string start with M
+- `%` : Any number of character
+- `_` : 1 character
+- Cast : changing something to something else
+- must cast to text to use with like
+
+```sql
+CAST(salary as text);
+salary::text
+```
+
+- case insensitive match
+
+```sql
+name ILIKE 'MO%'
+```
+
+- match string start with MO, Mo, mO. mo
+
+## Date and Timezones
+
+```sql
+SET TIME ZONE 'UTC'
+```
+
+```sql
+SHOW TIMEZONE
+```
+
+```sql
+ALTER USER <username> SET timezone='UTC'
+```
+
+- POSTGRESQL uses ISO-8001 (format of date and time)
+- `YYYY-MM-DDTHH:MM:SS`
+- `2017-08-17T12:47:16+02.00`
+- it is 12:47:16 o'clock at +02.00 time zone
+- format is a way to represent date and time
+
+- Timestamp is a date with time and timezone info
+
+```sql
+SELECT now()
+```
+
+- Get current date
+
+```sql
+SELECT now()::date;
+SELECT CURRENT_DATE;
+```
+
+- Formatting date
+
+```sql
+SELECT TO_CHAR(CURRENT_DATE, 'dd/mm/yyyy');
+```
+
+- Date Different
+
+```sql
+SELECT now() - '1800/01/01';
+```
+
+- To date (cast string to date)
+
+```sql
+SELECT date '1800/01/01';
+```
+
+- Age
+
+```sql
+SELECT AGE(date '1800/01/01');
+SELECT AGE(date '1992/11/13', date '1800/01/01');
+```
+
+- Extract
+
+```sql
+SELECT EXTRACT (DAY FROM date '1992/11/13') AS DAY;
+SELECT EXTRACT (MONTH FROM date '1992/11/13') AS MONTH;
+SELECT EXTRACT (YEAR FROM date '1992/11/13') AS YEAR;
+```
+
+- Rounding date: `year`, `month`, `week`, `day`
+
+```sql
+SELECT DATE_TRUNC ('year', date '1992/11/13');
+```
+
+- Interval
+
+```sql
+SELECT *
+FROM orders
+WHERE purchaseDate <= now() - INTERVAL '30 days'
+```
+
+```sql
+SELECT EXTRACT (
+  year
+  FROM INTERVAL '5 years 20 months'
+)
+```
+
+## DISTINCT
+
+- distinct for combination of column
+
+```sql
+SELECT DISTINCT <col1>, <col2> FROM <table>;
+```
+
+## Sorting Data
+
+- ASC is default
+
+```sql
+SELECT * FROM customers
+ORDER BY <column1> [ASC/DESC], <column2> [ASC/DESC]
+```
+
+```sql
+SELECT * FROM customers
+ORDER BY length(first_name) DESC
+```
+
+## Multi Table SELECT
+
+- inner join (using where)
+
+```sql
+SELECT  a.emp_no,
+        CONCAT(a.first_name, a.last_name) as "name",
+        b.salary
+FROM employees as a, salaries as b
+WHERE a.emp_no = b.emp_no
+ORDER BY a.emp_no
+```
+
+- inner join (using join)
+
+```sql
+SELECT  a.emp_no,
+        CONCAT(a.first_name, a.last_name) as "name",
+        b.salary
+FROM employees as a
+[INNER] JOIN salaries as b ON b.emp_no = a.emp_no;
+```
+
+<img src="./assets/05-01-inner-join.png" />
+
+- self join
+  - happen when a table has a foreign key referencing its primary key
+
+| id  | name           | startDate  | supervisorId |
+| --- | -------------- | ---------- | ------------ |
+| 1   | Mo Binni       | 1990/01/13 | 2            |
+| 2   | Andrei Neagoie | 1980/01/23 | 2            |
+
+- self join using where
+
+```sql
+SELECT a.id, a.name as "employee", b.name as "supervisor name"
+FROM employee as a, employee as b
+WHERE a.supervisorId = b.id
+```
+
+- self join using inner join
+
+```sql
+SELECT a.id, a.name as "employee", b.name as "supervisor name"
+FROM employee as a
+INNER JOIN employee as b
+ON a.supervisorId = b.id
+```
+
+- outer join
+
+  - get also the row that don't match
+
+- left outer join
+
+```sql
+SELECT *
+FROM <table A> AS a
+LEFT [OUTER] JOIN <table b> AS b
+ON a.id = b.id
+```
+
+<img src="./assets/05-02-left-join.png" />
+
+- right outer join
+
+```sql
+SELECT *
+FROM <table A> AS a
+RIGHT [OUTER] JOIN <table b> AS b
+on a.id = b.id
+```
+
+- uncommon join
+
+  - cross join : create a combination of every row (num row result = num row a \* num row b)
+  - full outer join : create all key from both left and right tables
+    <img src="./assets/05-03-full-join.png" />
+
+- USING key word
+
+```sql
+SELECT  a.emp_no,
+        CONCAT(a.first_name, a.last_name) as "name",
+        b.salary
+FROM employees as a
+INNER JOIN salaries as b USING(emp_no)
+-- `USING(emp_no)` is same as `ON b.emp_no = a.emp_no`
+```
+
+# Advanced SQL
+
+## GROUP BY
+
+- every column not in the group-by clause must apply a function
+- group by utilize split-apply-combine strategy
+
+```sql
+SELECT dept_no, COUNT(emp_no)
+FROM dept_emp
+GROUP BY dept_no
+```
+
+<img src="./assets/06-01-split-apply-combine.png" />
+
+- Order of operation
+
+```mermaid
+flowchart TB
+    FROM-->WHERE
+    WHERE-->groupby(GROUP BY)
+    groupby(GROUP BY)-->HAVING
+    HAVING-->SELECT
+    SELECT-->ORDER
+```
+
+- filter on group (`WHERE` is occur before group-by. Thus, we need `HAVING` to filter on group)
+
+```sql
+SELECT col1, COUNT(col2)
+FROM <table>
+WHERE col2 > X
+GROUP BY col1
+HAVING col1 === Y;
+```
+
+- ORDER BY for group
+
+```sql
+SELECT d.dept_name, COUNT(e.emp_no) AS "# of employees"
+FROM employees AS e
+iNNER JOIN dept_emp AS de ON de.emp_no = e.emp_no
+INNER JOIN departments AS d ON de.dept_no = d.dept_no
+WHERE e.gender = 'F'
+GROUP BY d.dept_name
+-- HAVING count(e.emp_no) > 25000
+ORDER BY "# of employees" DESC
+```
+
+- UNION
+
+```sql
+SELECT NULL AS "prod_id", SUM(ol.quantity)
+FROM orderlines AS ol
+
+UNION
+
+SELECT prod_id AS "prod_id", sum(ol.quantity)
+FROM orderlines AS ol
+GROUP BY prod_id
+ORDER BY prod_id DESC
+LIMIT 5
+```
+
+- GROUP SET
+
+```sql
+SELECT prod_id AS "prod_id", sum(ol.quantity)
+FROM orderlines AS ol
+GROUP BY
+  GROUPING SETS (
+    (),
+    (prod_id)
+  )
+ORDER BY prod_id DESC
+LIMIT 5
+```
+
+- ROLLUP
+  - return combination of group set in rollup
+
+```sql
+SELECT  EXTRACT (YEAR FROM orderdate) AS "year",
+        EXTRACT (MONTH FROM orderdate) AS "month",
+        EXTRACT (DAY FROM orderdate) AS "day",
+        SUM(ol.quantity)
+FROM orderlines AS ol
+GROUP BY
+    ROLLUP (
+        EXTRACT (YEAR FROM orderdate),
+        EXTRACT (MONTH FROM orderdate),
+        EXTRACT (DAY FROM orderdate)
+        ()
+    )
+
+-- apply `HAVING` to reduce number of output
+HAVING  (EXTRACT (YEAR FROM orderdate) = 2004 OR EXTRACT (YEAR FROM orderdate) IS NULL) AND
+        (EXTRACT (MONTH FROM orderdate) = 1 OR EXTRACT (MONTH FROM orderdate) IS NULL)
+ORDER BY
+    EXTRACT (YEAR FROM orderdate),
+    EXTRACT (MONTH FROM orderdate),
+    EXTRACT (DAY FROM orderdate)
+```
+
+## Window Functions
+
+- Window functions crete a new column based on functions performed on a subset or "window" of the data
+
+```sql
+window_function(arg1, arg2, ...) OVER (
+  [PARTITION BY partition_expression]
+  [ORDER BY sort_expression [ASC | DESC] [NULLS {FIRST | LAST}]]
+)
+```
+
+### PARTITION BY keyword
+
+- PARTITION BY: divide rows into groups to apply the function against (optional)
+
+### ORDER BY Keyword
+
+- ORDER BY: order the results
+- order by change the frame of window function (to cumulative)
+
+### Frame Clause
+
+- When using a frame clause in a window function we can create a sub-rance or frame
+
+| Key                            | Meaning                                            |
+| ------------------------------ | -------------------------------------------------- |
+| ROWS or RANGE                  | Whether you want to use a range or rows as a frame |
+| PRECEDING                      | Rows before the current one                        |
+| FOLLOWING                      | Rows after the current one                         |
+| UNBOUND PRECEDING or FOLLOWING | Returns all before or after                        |
+| CURRENT ROW                    | Your current row                                   |
+
+```sql
+PARTITION BT category ORDER BY price RANGE BETWEEN UNBOUND PRECEDING AND CURRENT ROW
+```
+
+- without `ORDER BY` by default the framing is usually all partition rows
+
+## Functions
+
+| Function        | Purpose                                                               |
+| --------------- | --------------------------------------------------------------------- |
+| SUM/MIN/MAX/AVG | Get the sum/min/max/avg of all records in the partition               |
+| FIRST_VALUE     | Return a value evaluated against the first row within its partition   |
+| LAST_VALUE      | Return a value evaluate against the last row within its partition     |
+| NTH_VALUE       | Return a value evaluated against the nth row in an ordered partition  |
+| PERCENT_RANK    | Return the relative rank of the current row (rank-1) / (total rows-1) |
+| RANK            | Rank the current row within its partition with gaps                   |
+| ROW_NUMBER      | Number the current row within its partition starting from 1           |
+| LAG/LEAD        | Access values from the previous or next row                           |
+
+### FIRST_VALUE function
+
+- Return a value evaluated against the first row within its partition
+
+```sql
+SELECT
+  prod_id,
+  price,
+  category,
+  -- sort by price and get the first price. thus get the lowest price
+  FIRST_VALUE(price) OVER(
+    PARTITION BY category ORDER BY price RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWiNG
+  )
+FROM products
+```
+
+### LAST_VALUE function
+
+- Return a value evaluate against the last row within its partition
+
+### SUM function
+
+```sql
+SELECT
+  o.orderid,
+  o.customerid,
+  o.netamount,
+  SUM(o.netamount) OVER(
+    PARTITION BY o.customerid ORDER BY o.orderid
+  ) as "cum sum"
+FROM orders as o
+ORDER BY o.customerid
+```
+
+### ROW_NUMBER function
+
+- Number the current row within its partition starting from 1
+
+```sql
+SELECT
+  prod_id,
+  price,
+  category,
+  row_number() OVER(PARTITION BY category ORDER BY price) AS "position in category by price"
+FROM products
+```
+
+## Conditional Statements
+
+- conditional select
+
+```sql
+SELECT  a,
+        CASE
+          WHEN a=1 THEN 'one'
+          WHEN a=2 THEN 'two'
+          ELSE 'other'
+          END
+FROM test;
+```
+
+- conditional filter
+
+```sql
+SELECT  o.orderid,
+        o.customerid,
+        o.netamount
+FROM orders AS o
+WHERE CASE
+        WHEN o.customerid > 10
+        THEN o.netamount < 100
+        ELSE o.netamount > 100
+        END
+ORDER BY o.customerid
+```
+
+- conditional aggregate function
+
+```sql
+SELECT
+  SUM(
+    CASE
+      WHEN o.netamount < 100
+      THEN -100
+      ELSE o.netamount
+      END
+  ) as "returns",
+  SUM(o.netamount) as "normal total"
+FROM orders AS o
+```
+
+## NULLIF function
+
+```sql
+NULLIF(val_1, val_2)
+```
+
+- return `NULL` if `val_1` = `val_2`.
+
+## VIEWS
+
+- Non-materialized views: query gets re-run each time the view is called on
+- Materialized views: store the data physically and periodically updates it when tables change
+
+### Create a view
+
+- views are the output of the query
+- views act like tables (we can query them)
+- Non-materialized views use very little space. Only store the definition of a view not all the data
+
+- create view
+
+```sql
+CREATE VIEW view_name AS query
+```
+
+- replace view
+
+```sql
+CREATE OR REPLACE <view_name> AS query
+```
+
+- rename view
+
+```sql
+ALTER VIEW <view_name> RENAME TO <view_name>
+```
+
+- delete view
+
+```sql
+DROP VIEW [ IF EXISTS ] <view_name>
+```
+
+### Using view
+
+- current salary
+
+```sql
+-- CREATE VIEW last_salary_change AS
+CREATE OR REPLACE VIEW last_salary_change AS
+SELECT  e.emp_no,
+        MAX(s.from_date)
+FROM salaries AS s
+
+JOIN employees AS e USING(emp_no)
+JOIN dept_emp AS de USING(emp_no)
+JOIN departments AS d USING(dept_no)
+
+GROUP BY e.emp_no
+ORDER BY e.emp_no;
+
+SELECT * FROM last_salary_change LIMIT 5;
+```
+
+```sql
+-- use view from above block
+SELECT s.emp_no, d.dept_name, s.from_date, s.salary FROM last_salary_change
+
+JOIN salaries AS s USING(emp_no)
+JOIN dept_emp AS de USING(emp_no)
+JOIN departments AS d USING(dept_no)
+
+
+WHERE s.from_date = max
+ORDER BY s.emp_no
+```
+
+## Indexes
+
+- Index: is a construct to improve querying performance
+- it like a table of contents
+- speed up queries
+- slow down data insertion and updates
+
+### Types of indexes
+
+- Single-Column
+- Multi-Column
+- Unique
+- Partial
+- Implicit Indexes
+
+### Create Index
+
+- create index
+
+```sql
+CREATE UNIQUE INDEX <name>
+ON <table> (COLUMN1, COLUMN2, ...);
+```
+
+- delete index
+
+```sql
+DROP INDEX <name>
+```
+
+### When to use index
+
+- index foreign keys
+- index primary keys and unique columns
+- index on columns that end up in the `ORDER BY`/`WHERE` clause often
+
+### When not to use index
+
+- Do not add an index just to add an index
+- Do not use indexes on small tables
+- Do not use on tales that are updated frequently
+- Do not use on columns that can contain null values
+- Do not use on columns that have large values
+
+### Single-Column index
+
+- Most frequently used **column** in a query (in `WHERE` clause)
+- Retrieving data that satisfies **one** condition
+
+### Multi-Column index
+
+- Most frequently used **columns** in a query (in `WHERE` clause)
+- Retrieving data that satisfies **multiple** condition
+
+### Unique index
+
+- for speed and integrity
+
+```sql
+CREATE UNIQUE INDEX <name>
+on <table> (column1)
+```
+
+### Partial index
+
+- index over a subset of a table
+
+```sql
+CREATE INDEX <name>
+on <table> (column1) <expression>
+```
+
+### Implicit index
+
+- automatically create by the database:
+  - primary ley
+  - unique key
+
+### Examples
+
+- create partial index
+
+```sql
+CREATE INDEX idx_countrycode
+ON city (countrycode) WHERE countrycode IN ('TUN', 'BE', 'NL')
+```
+
+```sql
+EXPLAIN ANALYSE
+SELECT "name", district, countrycode FROM city
+WHERE countrycode IN ('TUN', 'BE', 'NL')
+```
+
+### Index Algorithms
+
+- ProtgreSQL provides several types of indexes algorithms
+  - B-Tree
+  - HASH
+  - GIN
+  - GIST
+- Each index type uses a different algorithm
+
+```sql
+CREATE [UNIQUE] INDEX <name>
+ON <table> USING <method> (column1, ...)
+```
+
+- B-Tree
+
+  - default algorithm
+  - best for comparison with <, <=, =. >=, BETWEEN, IN, IS NULL, IS NOT NULL
+
+- Hash
+
+  - can only handle =
+
+- GIN (Generalized Inverted Index)
+
+  - Best used when multiple values are stored in a single field
+
+- GIST (Generalized Search Tree)
+
+  - Useful in indexing geometric data and full-test search
+
+## Subquery
+
+- subsuery: construct that allows you to build extremely complex queries
+- also called: inner query, inner select
+
+- subquery in `WHERE` clause
+
+```sql
+SELECT *
+FROM <table>
+WHERE <column> <condition> (
+  SELECT <column>
+  FROM <table>
+  [WHERE/ GROUP BY/ ORDER BY/ ...]
+)
+```
+
+- subquery in `SELECT` clause
+
+```sql
+SELECT (
+  SELECT <column>
+  FROM <table>
+  [WHERE/ GROUP BY/ ORDER BY/ ...]
+)
+FROM <table> AS <name>
+```
+
+- subquery in `FROM` clause
+
+```sql
+SELECT *
+FROM (
+  SELECT <column>, <column>, <column>, ...
+  FROM <table>
+  [WHERE/ GROUP BY/ ORDER BY/ ...]
+) AS <anme>
+```
+
+- subquery in `HAVING` clause
+
+```sql
+SELECT *
+FROM <table> AS <name>
+GROUP BY <column>
+HAVING (
+  SELECT <column>
+  FROM <table>
+  [WHERE/ GROUP BY/ ORDER BY/ ...]
+) > X
+```
+
+### Subquery vs JOIN
+
+- Both subquery and JOIN combine data from different tables
+
+- subqury
+
+```sql
+SELECT title, price, (SELECT AVG(price) FROM products) AS "global average price"
+FROM products
+```
+
+- Subqueries are queries that could stand alone
+- Subqueries can return a single result or a row set
+- Subqueries results are immediately used
+
+- join
+
+```sql
+SELECT prod_id, title, price, quan_in_stock
+FROM products
+JOIN inventory USING(prod_id)
+```
+
+- Join combine rows from one or more tables based on a match condition
+- Join can only return a row set
+- Join table can be used in the outer query
+- If we are able to use the join, use the join. it is better performance
+
+### Subquery Guidelines
+
+- subquery must be enclosed in parenthesis
+- must be place on the right side of the comparison operator
+- cannot manipulate their results internally (order by ignored)
+- use single-row operators with single-row subqueries
+- subquery that return null may not return results
+
+### Types of Subqueries
+
+- Single row: return zero or one row
+
+```sql
+SELECT name, salary
+FROM salaries
+WHERE salary = (SELECT AVG(salary) FROM salaries)
+```
+
+- Multiple row: return one or more rows
+
+```sql
+SELECT title, price, category
+FROM products
+WHERE category IN (
+  SELECT category FROM categories
+  WHERE categoryname IN ('Comedy', 'Family', 'Classics')
+)
+```
+
+- Multiple column
+
+```sql
+SELECT emp_no, salary, dea.avg AS "Department average salary"
+FROM salaries AS s
+JOIN dept_emp AS de USING(emp_no)
+JOIN (
+        SELECT dept_no, AVG(salary) FROM  salaries AS s2
+        JOIN dept_emp AS e USING(emp_no)
+        GROUP BY dept_no
+     ) AS dea USING(dept_no)
+WHERE salary > dea_avg
+```
+
+- Correlated: reference one or more columns in the outer statement - runs against each row
+
+```sql
+SELECT emp_no, salary, from_date
+FROM salaries AS s
+WHERE from_date = (
+  SELECT max(s2.from_date) AS max
+  FROM salaries AS s2
+  WHERE s2.emp_no = s.emp_np
+)
+ORDER BY emp_no
+```
+
+- Nested : subquery inside subquery
+
+```sql
+SELECT orderlineid, prod_id, quantity
+FROM orderlines
+JOIN (
+    SELECT prod_id
+    FROM products
+    WHERE category IN (
+        SELECT category FROM category
+        WHERE categoryname IN ('Comedy', 'Family', 'Classics')
+    )
+) AS limited USING (prod_id)
+```
+
+### Subqueries in `WHERE` clause
+
+- `EXISTS` : check if the subquery return any rows
+
+```sql
+SELECT firstname, lastname, income
+FROM customers AS c
+WHERE EXISTS (
+  SELECT * FROM orders AS o
+  WHERE c.customerid = o.customerid AND totalamount > 400
+) AND incomer > 90000
+```
+
+- `IN` : check if the value is equal to any of the rows in the return
+- (Null yields null)
+
+```sql
+SELECT prod_id
+FROM products
+WHERE category IN (
+  SELECT category FROM categories
+  WHERE categoryname IN ('Comedy', 'Family', 'Classics')
+)
+```
+
+- `NOT IN` : check if the value is equal to any of the rows in the return
+- (Null yields null)
+
+```sql
+SELECT prod_id
+FROM products
+WHERE category IN (
+  SELECT category FROM categories
+  WHERE categoryname NOT IN ('Comedy', 'Family', 'Classics')
+)
+```
+
+- `ANY` / `SOME` : check each row against the operator and if any comparison matches return true
+
+```sql
+SELECT prod_id
+FROM products
+WHERE category = ANY (
+  SELECT category FROM categories
+  WHERE categoryname IN ('Comedy', 'Family', 'Classics')
+)
+```
+
+- `ALL` : check each row against the operator and if all comparisons match return true
+
+```sql
+SELECT prod_id, title, sales
+FROM products
+JIN inventory AS i USING(prod_id)
+WHERE i.sales > ALL (
+  SELECT AVG(sales) FROM inventory
+  JOIN products AS p1 USING (prod_id)
+  GROUP BY p1.category
+)
+```
+
+- Single Value Comparison : subquery must return a single row check comparator against row
+
+```sql
+SELECT prod_id
+FROM products
+WHERE category = (
+  SELECT category FROM categories
+  WHERE categoryname IN ('Comedy')
+)
+```
