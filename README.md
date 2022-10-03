@@ -1,3 +1,5 @@
+Skills: `SQL`, `PostgreSQL`, `Database`, `ER Diagram`
+
 # Types of Databases
 
 1. Relational (SQL)
@@ -1155,3 +1157,358 @@ WHERE category = (
   WHERE categoryname IN ('Comedy')
 )
 ```
+
+# Database Management
+
+## Types of Databases
+
+- Regular
+
+- Template
+
+## Creating Database
+
+- When you setup, PostgreSQL create 3 databases
+
+  1. Postgres
+  2. Template0
+  3. Template1
+
+- create database
+
+```cli
+psql -U <user> <database>
+```
+
+- default database name = user
+
+```cli
+psql -U postgres
+postgres=# \connection
+```
+
+### Template Database
+
+- Template0
+
+  - use to create template1
+  - never change it
+  - backup template
+
+- Template1
+  - use to create new databases
+
+### Creating A Database syntax
+
+```sql
+CREATE DATABASE name
+  [ [WITH]  [ OWNER [=] user_name ]
+            [ TEMPLATE [=] template ]
+            [ ENCODING [=] encoding ]
+            [ LC_COLLATE [=] la_collate ]
+            [ LC_CTYPE [=] lc_ctype ]
+            [ TABLESPACE [=] tablespace ]
+            [ CONNECTION LIMIT [=] connlimit ]]
+```
+
+| Setting          | Default      |
+| ---------------- | ------------ |
+| TEMPLATE         | template01   |
+| ENCODING         | UTF8         |
+| CONNECTION_LIMIT | 100          |
+| OWNER            | Current user |
+
+- create database
+
+```cli
+CREATE DATABASE <db_name>
+```
+
+- delete database
+
+```cli
+DROP DATABASE <db_name>
+```
+
+## Database Organization
+
+- databases contain many tables, view, etc..
+- may want to organize them in logical way
+
+- Postgres Schemas
+  - it is like a box to organize tables, views, indexes, etc.
+  - `public` schema is default
+
+```sql
+-- not specify schemas, default is public
+SELECT * FROM employees
+
+-- is the same as
+SELECT * FROM public.employees
+```
+
+- list all schemas
+
+```cli
+postgres=# \dn
+```
+
+- create schema
+
+```cli
+CREATE SCHEMA sales;
+```
+
+### Reasons to use schemas
+
+- to allow many users to use one database without interfering (e.g. same tablename in different schema)
+
+- to organize database objects into logical groups to make them more manageable
+
+- 3rd-party application can be put into separate schemas. so, they do not collide with the names of other objects
+
+### Restricted
+
+- crating databases is a restricted action. not every one is allowed to do it.
+- permission management
+
+### Roles in Postgres
+
+- Roles: have attributes and privileges
+
+### Role attribute
+
+- createdb / nocreatedb
+- superuser / nosuperuser
+- createrole / nocreaterole
+- login / nologin
+- password
+
+- creating a role
+
+```cli
+CREATE ROLE readonly WITH LOGIN ENCRYPTED PASSWORD 'readonly'
+```
+
+- by defaults, only `creator` of the database or `superuser` has access to the database object
+
+- creating user
+
+```cli
+CREATE USER user1 WITH ENCRYPTED PASSWORD 'user1'
+```
+
+### Role privileges
+
+- Granting privileges
+
+```sql
+GRANT ALL PRIVILEGES ON <table> TO <user>
+GRANT ALL ON ALL TABLES [IN SCHEMA <schema>] TO <user>
+GRANT [SELECT, UPDATE, INSERT, ...] ON <table> [IN SCHEMA <schema>] TO <user>
+```
+
+```sql
+REVOKE [SELECT, UPDATE, INSERT, ...] ON <table> FROM <user>
+REVOKE ALL ON ALL TABLES [IN SCHEMA <schema>] FROM <user>
+```
+
+### Best Practice
+
+- Principle of least privilege
+
+## Data Types in Postgres
+
+- Types: `Numeric Types`, `Arrays`, `Character Types`, `Date/Time Types`, `Boolean Types`, `UUID Types`, etc.
+- Data Types is constraint of data to be filled
+
+### Boolean
+
+- `TRUE`, `FALSE`, `NULL`
+- Smart Conversion:
+  - `TRUE` : `1`, `yes`, `y`, `t`, `true`
+  - `False` : `0`, `no`, `n`, `f`, `false`
+
+### Character
+
+- CHAR(N), VARCHAR(N), TEXT
+- CHAR(10) : fixed length with space padding
+  - eg. `mo········`
+- VARCHAR(10) : variable length with no padding
+- TEXT : unlimited length of text
+
+### Numeric
+
+- Integer:
+  - Smallint: -32,768 to 32,767
+  - Int: -2,147,483,648 to 2,147,483,647
+  - Bigint: -9.2e18 to 9.2e18
+- Floating point
+  - Float4: Single precision (6 digit precision)
+  - Float8: Double precision (15 digit precision)
+  - Decimal/Numeric: 131072 digits before decimal point and 16383 digits after decimal point
+
+### Arrays
+
+- Arrays: group of element of the same type
+
+```sql
+CREATE TABLE test_text (
+  four char(2)[],
+  eight text[],
+  big float4[]
+);
+
+INSERT INTO test_text VALUES (
+  ARRAY ['mo', 'mo', 'm', 'd'],
+  ARRAY ['test', 'long text', 'longer text'],
+  ARRAY [1.23, 2.11, 3.23, 5.321468864]
+);
+```
+
+## Data Model
+
+- Data Model: used to visualize what we are going to build
+
+- Entity Relationship Diagram (ER Diagram)
+  <img src="./assets/07-02-entity-relationship.png" />
+
+## Naming Convention
+
+- Table names must be `singular`!
+- Column : `snake_case`, or mixed case such as `student_ID`
+
+## Create Table
+
+```sql
+CREATE TABLE <name> (
+  <col1> TYPE [CONSTRAINT],
+  table_constraint [CONSTRAINT]
+) [INHERITS <existing_table>];
+```
+
+- Temporary tables
+  - They are a type of table that exist in a special schema, so you cannot define a schema name when declaring a temporary table.
+  - Use Temporary tables is because:
+    - Temporary tables behave just like normal ones
+    - Postgres will apply less “rules” (logging, transaction locking, etc.) to temporary tables so they execute more quickly
+    - You have full access rights to the data, if you otherwise didn’t so you can test things out.
+
+```sql
+CREATE TEMPORARY TABLE <name> (<col1>);
+```
+
+## Constraints
+
+### Column Constraint
+
+| Constraint  | Meaning                                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| NOT NULL    | cannot be null                                                                                               |
+| PRIMARY KEY | column will be the primary key                                                                               |
+| UNIQUE      | can only contain unique values(NULL is Unique)                                                               |
+| CHECK       | apply a special condition check against the values in the column                                             |
+| REFERENCES  | constrain the values of the column to only be values that exist in the column of another table (Foreign Key) |
+
+### Table Constraint
+
+| Constraint                | Meaning                                         |
+| ------------------------- | ----------------------------------------------- |
+| UNIQUE (column_list)      | can only contain unique value (NULL is Unique)  |
+| PRIMARY KEY (column_list) | columns that will be the primary key            |
+| CHECK (condition)         | a condition to check when inserting or updating |
+| REFERENCES                | Foreign key relationship to column              |
+
+- Table constraint is defined at the bottom
+- Every column constraint can be written as a table constraint
+  - BEST PRACTICE: if constraint related to one column, write it as column constraint.
+    if the constraint related to multiple columns, write it as table constraint.
+
+```sql
+CREATE TABLE student (
+  strudent_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  date_of_birth DATE NOT NULL,
+  CONSTRAINT pk_student_id PRIMARY KEY (student_id)
+);
+```
+
+## UUID
+
+- install extension
+
+```sql
+CREATE EXTENSION IF NOT EXISTS "UUID-OSSP";
+```
+
+- get all extension
+
+```sql
+SELECT * FROM pg_available_extensions;
+```
+
+- UUID (Universally Unique Identifier) generate unique identifier for primary keys
+
+- Pro
+
+  - unique everywhere
+  - easier to shard
+  - easier to merge/replicate
+  - expose less information about your system
+
+- Con
+  - larger values to store
+  - can have performance impact
+  - more difficult to debug
+
+## Custom Data Types
+
+- custom data types for Feedback
+  <img src="./assets/07-01-entity-relationship.png" />
+
+```sql
+CREATE DOMAIN Rating SMALLINT
+    CHECK (VALUE > 0 AND VALUE <= 5);
+
+CREATE TYPE Feedback AS (
+    student_id UUID,
+    rating Rating,
+    feedback TEXT
+);
+```
+
+## ALTER TABLE
+
+```sql
+ALTER TABLE [ IF EXISTS ] [ ONLY ] name [ * ]
+  ADD COLUMN <col> <type> <constraint>;
+
+ALTER TABLE [ IF EXISTS ] [ ONLY ] name [ * ]
+  ALTER COLUMN <name> TYPE <new type> [USING <expression>];
+
+ALTER TABLE [ IF EXISTS ] [ ONLY ] name [ * ]
+  RENAME COLUMN <old name> TO <new name>
+
+ALTER TABLE [ IF EXISTS ] [ ONLY ] name [ * ]
+  DROP COLUMN <col> TO [ RESTRICT | CASCADE ]
+```
+
+## Adding data (Insert)
+
+```sql
+INSERT INTO student(
+  first_name,
+  last_name,
+  email,
+  date_of_birth
+) VALUES (
+  'Mo',
+  'Binni',
+  'mo@binni.io',
+  '1992-11-13'::DATE
+);
+```
+
+<img src="./assets/07-03-er-final.png" />
