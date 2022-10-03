@@ -1512,3 +1512,72 @@ INSERT INTO student(
 ```
 
 <img src="./assets/07-03-er-final.png" />
+
+## Backups
+
+### Backup Plans
+
+1. What need to be backed up
+
+- Full Backup : Backup all the data : less often
+- Incremental : Backup since last incremental : often
+- Differential : Backup since last full backup : often
+- Transaction Log : Backup od the database transaction (real-time snapshot) : most frequent
+
+2. Appropiate way to backup (OS, HDD, or only database)
+
+3. How frequently?
+
+4. Where to store backups
+
+5. Retention Policy (How long to store?)
+
+### Backup in PostgreSQL
+
+- Create dump
+
+### Restore in PostgreSQL
+
+- LOad dump
+
+## Transaction
+
+- Transaction : Units of instruction
+- Transaction keep thongs consistent
+
+```mermaid
+flowchart LR
+    BEGIN-->ACTIVE
+    ACTIVE-->id1(PARTIALLY COMMITTED)
+    id1(PARTIALLY COMMITTED)-->FALIED
+    ACTIVE-->FALIED
+    id1(PARTIALLY COMMITTED)-->COMMITTED
+    COMMITTED-->END
+    FALIED-->ABORTED
+    ABORTED-->END
+```
+
+```SQL
+BEGIN;
+DELETE FROM employees WHERE emp_no BETWEEN 10000 AND 10005; -- partially commit
+SELECT * FROM employees;
+ROLLBACK; -- not commit (ABORTED)
+```
+
+```SQL
+BEGIN; -- locking databases
+DELETE FROM employees WHERE emp_no BETWEEN 10000 AND 10005; -- partially commit
+SELECT * FROM employees;
+END; -- commit (COMMITTED)
+```
+
+- Transaction is to maintain the integrity of a database, all transactions must obey `ACID` properties
+
+### ACID properties
+
+- Atomicity: either execute entirely or not at all
+- Consistency: each transaction should leave the database in a consistent state (COMMIT or ROLLBACK)
+- Isolation: transaction should be executed in isolation from other transactions
+- Duration: after completion of a transaction, the changes in the database should presist
+
+# Solving The Mystery
