@@ -1580,4 +1580,629 @@ END; -- commit (COMMITTED)
 - Isolation: transaction should be executed in isolation from other transactions
 - Duration: after completion of a transaction, the changes in the database should presist
 
-# Solving The Mystery
+# Database and System Design
+
+## SDLC (Software Development Life Cycle)
+
+```mermaid
+flowchart TB
+    p1-->p2("phase 2:\nSystem Analyse")
+    p2-->p3("phase 3:\nSystem Design")
+    p3-->p4("phase 4:\nSystem Implementation and Operation")
+    p4-->p1("phase 1:\nSystem Planning and Selection")
+```
+
+- The goal is robust systems!
+
+- Process implementation: Agile, Waterfall, V-Model, ...
+
+- **SDLC Phase 1** : Getting information on what needs to be done (scope)
+
+- **SDLC Phase 2** : taking requirements and analyzing if it can be done on time and on budget
+
+- **SDLC Phase 3** : designing the system architecture for all related components databases, apps, etc.
+
+- **SDLC Phase 4** : building the software
+
+- There are more phase: Testing, Maintenance
+
+## System Design
+
+- Phase 1 / 2 is more related to business stakeholders and architect at higher level
+
+- Phase 3 / 4 is closer to implementation design and software program (more related to individual software engineer)
+
+- System Design is all about creaing structure that can be understood and communicated
+
+## Database Design
+
+1. Top-Down
+2. Bottom-Up
+
+### Top-Down
+
+- Start from 0
+- Optimal choice when creating a new database
+- All Requirements are gathered up-front
+
+### Bottom-up
+
+- There is an existing system or specific data in place
+- Want to shape a new system aroud the existing data
+- Optimal choice when migrating an existing database
+
+### What to use?
+
+- often we will use a bit of both top-down and bottom-up.
+
+## DriveMe Academy
+
+- Requirements
+
+  - DriveMe is a driving school where people can take lessons based across the USA.
+  - Every school has instrctors on payroll and an inventory of cars, truck and Motocycles for teaching.
+  - Become a household name across the USA for learning how to drive.
+
+  - Currently DriveMe has outdated website and their customer acquisition is mostly word of mouth.
+  - They want to start gaining marketshare through an online presence
+
+- Core Requirements
+  - There is a vehicle inventory for students to rent
+  - There are employees at every branch
+  - There is maintenance for the vehicles
+  - There is optional exam at the end of your lessons
+  - You can only take the exam twice, if fail twice, you must take more lessons.
+
+### Top-Down design
+
+- Goal: to create a data model based on requirements
+
+- Requirements:
+
+  - high-level requirements
+  - user interviews
+  - data collection
+  - deep understanding
+
+- Method: ER Model
+
+```mermaid
+flowchart LR
+    p3("phase 3:\nSystem Design")-->c1{"How to design?"}
+    c1-->|Top-Down|c2("ER Modeling")
+    c1-->|Bottom-Up|c3("???")
+```
+
+#### Step 1: Determining Entities
+
+- What is an entity?
+
+  - a person/place or thing
+  - has a singular name
+  - has an indentifier
+  - should contain more than one instance of data
+
+- DriveMe Entities: Student, School, Vehicle, Instructor, Maintenance, Exam, Lesson
+
+```mermaid
+erDiagram
+    School ||--|| Instructor : has
+    School ||--|| Student : has
+    Instructor ||--|| Lesson : teaches
+    Student ||--|| Lesson : takes
+    Student ||--|| Exam : ""
+    Lesson ||--|| Vehicle : ""
+    Vehicle  ||--|| Maintainence : ""
+```
+
+#### Step 2: Attributes
+
+- Give entities the information they will store
+- Must be property of the entity
+- Must be atomic (smallest amount of data) e.g., address is not atomic it hold house number, street name, country etc.
+- Single/Multivalued (Phone Number)
+- Keys
+
+#### Components in Relational Model
+
+- Relation Schema : header of table
+- Relation Instance : all of the rows of the table
+
+<img src="./assets/09-01-relation-model-component.png" />
+
+- `Relation Key`: uniquely identify the row and the relationship
+
+  - `Super Key`: Combination of attribute that could uniquely identify rows. e.g., `id` & `firstName`
+  - `Candidate Key`: Minimal anount of attribute that could uniquely identify rows. (Candidate Key is subset of Super Key)
+  - `Primary key`: selected only one candidate key
+  - `Foreign key`
+  - `Compound key`: super key that include foreign key
+  - `Composite key`: super key that **not** include foreign key
+  - `Surrogate key`: a primary key that is not involve with individual data (synthetic primary key). it is generated.
+  - `Alternate key`: is the secondary candidate key that contains all the property of a candidate key but is an alternate option.
+
+- DriveMe Attributes
+
+```mermaid
+erDiagram
+    %% Entity
+    School {
+      attr school_id
+      attr street_name
+      attr street_number
+      attr postal_code
+      attr state
+      attr city
+    }
+
+    Instructor {
+      attr teacher_id
+      attr first_name
+      attr last_name
+      attr data_od_birth
+      attr hiring_date
+      attr school_id
+    }
+
+    Student {
+      attr student_id
+      attr first_name
+      attr last_name
+      attr data_od_birth
+      attr enrollment_date
+      attr school_id
+    }
+
+    Exam{
+      attr student_id
+      attr teacher_id
+      attr date_taken
+      attr passed
+      attr lesson_id
+
+    }
+
+    Lesson{
+      attr lesson_id
+      attr date_of_enrollment
+      attr package
+      attr student_id
+
+    }
+
+    %% Relationship
+    School ||--|| Instructor : has
+    School ||--|| Student : has
+    Instructor ||--|| Lesson : teaches
+    Student ||--|| Lesson : takes
+    Student ||--|| Exam : ""
+    Lesson ||--|| Vehicle : ""
+    Vehicle  ||--|| Maintainence : ""
+```
+
+#### Step 3: Relationships
+
+- Determine the relationship between entities
+- Links 2 entitiess together:
+  - 1 to 1
+  - 1 to many
+  - many to many
+
+```mermaid
+erDiagram
+  Entity |o--o| Zero-or-One : ""
+  Entity ||--|| Exactly-One : ""
+  Entity }o--o{ Zero-or-More : ""
+  Entity }|--|{ One-or-More : ""
+```
+
+- format
+  - first line: upper bound
+  - second line: lower bound
+
+```
+<left-entity> <first-line><second-line>--<second-line><first-line> <right-entity>
+```
+
+- DriveMe Relationship
+
+```mermaid
+erDiagram
+    %% Entity
+    School {
+      attr school_id
+      attr street_name
+      attr street_number
+      attr postal_code
+      attr state
+      attr city
+    }
+
+    Instructor {
+      attr teacher_id
+      attr first_name
+      attr last_name
+      attr data_od_birth
+      attr hiring_date
+      attr school_id
+    }
+
+    Student {
+      attr student_id
+      attr first_name
+      attr last_name
+      attr data_od_birth
+      attr enrollment_date
+      attr school_id
+    }
+
+    Exam{
+      attr student_id
+      attr teacher_id
+      attr date_taken
+      attr passed
+      attr lesson_id
+
+    }
+
+    Lesson{
+      attr lesson_id
+      attr date_of_enrollment
+      attr package
+      attr student_id
+
+    }
+
+    %% Relationship
+    School ||--|{ Instructor : has
+    School ||--|{ Student : has
+    Instructor ||--|{ Exam : ""
+    Instructor ||--|{ Lesson : teaches
+    Student ||--|{ Lesson : takes
+    Student ||--|{ Exam : ""
+    Lesson ||--|{ Exam : ""
+    Lesson ||--|| Vehicle : ""
+    Vehicle  ||--o{ Maintainence : ""
+```
+
+#### Step 4: Solving Many to Many Relationship
+
+- In relational model, it is impossible to store many to many relationship
+
+- techinically possible but will lead to more over head: insert overhead, update overhead, delete overhead, potential redundancy
+
+- Rule of Thumb: Always try to resolve many to many
+
+```mermaid
+erDiagram
+  Book }|--|{ Author : ""
+```
+
+- Add intermediate entities (intermediate table)
+
+```mermaid
+erDiagram
+  Book ||--|{ Book_Author : ""
+  Book_Author }|--|| Author : ""
+```
+
+#### Step 5: Subject Area
+
+- Divide entities into logical groups that are related (think schemas)
+
+- This step is need for distributed level at a global level
+
+- Subject Area Rules:
+
+  - All entities must belong to one subject area
+  - An entity can only belong to one
+  - You can nest subject areas
+
+- DriveMe Subject Area
+
+<img src="./assets/09-02-subject-area.png" />
+
+#### Exercise: Patining Reservation
+
+- a rich business man has tons of paintings.
+- he want to build a system to catalog and track where his art is
+- he lends it to museums all across the world
+- he want to see reservations
+- some constraints:
+
+  - a painting can only have one artist
+
+- ask about the system.
+
+  - goal?
+    - tracj painting reservation for a wealthy man
+  - stakeholders?
+    - owner, museums
+
+- step 1: entities
+
+  - painting
+  - reservation
+  - museum
+  - artist
+
+- step 2: attributes
+  | Entities | Attributes |
+  |-------------|---------------------------------------------|
+  | Painting | name, creation_date, style |
+  | Reservation | creation_date, date_from, date_to, accepted |
+  | Artist | name, birth_date, email |
+  | Museum | name, address, phone_number, email |
+
+- step 3: relationships
+
+```mermaid
+erDiagram
+  Painting }o--o{ Reservation : ""
+  Painting }o--|| Artist : ""
+  Reservation }o--|| Museum : ""
+```
+
+- step 4: solving many to many
+
+```mermaid
+erDiagram
+  Painting ||--o{ Reservation_Detail : ""
+  Reservation_Detail }o--|| Reservation : ""
+  Painting }o--|| Artist : ""
+  Reservation }o--|| Museum : ""
+```
+
+#### Exercise: Cinema
+
+```mermaid
+erDiagram
+  Movie }o--o{ Auditorium : ""
+  Auditorium }o--|| Theater : ""
+```
+
+- fix many to many
+
+```mermaid
+erDiagram
+  Movie ||--o{ Showing : ""
+  Showing }o--|| Auditorium : ""
+  Auditorium }o--|| Theater : ""
+```
+
+### Bottom Up Design
+
+- create a data model from specific detail, existing systems, legacy systems
+
+1. indentify the data (attributes)
+2. group them (entities)
+
+- create a perfact data model without `redundancy` and `anomalies`
+
+#### Anomalies
+
+- incorrected structure database
+- 3 types:
+  1. update anomalies
+  2. insert anomalies
+  3. delete anomalies
+
+1. update anomalies
+
+- ensure the changes apply to all related data
+  <img src="./assets/09-03-update-anomalies.png" />
+  From this table, if Toronto brach changes the address, we need to update the same thing on many rows.
+
+2. insert anomalies
+
+- check that data is consistency
+  <img src="./assets/09-04-insert-anomalies.png" />
+  From this table, if someone insert customer id 5 with wrong address of the branch, it will cause inconsistency
+
+3. delete anomalies
+
+- ensure that we do not lose important data
+  <img src="./assets/09-05-delete-anomalies.png" />
+  From this table, if we delete customer id 3, we will lose data of Scarborough branch.
+
+- Normalized : avoiding anomalies is key to database design
+  <img src="./assets/09-06-normalized.png" />
+
+#### Normalization
+
+```mermaid
+flowchart LR
+    p3("phase 3:\nSystem Design")-->c1{"How to design?"}
+    c1-->|Top-Down|c2("ER Modeling")
+    c1-->|Bottom-Up|c3("Normalization")
+```
+
+1. functional dependencies
+
+2. normal forms
+
+##### Functional Dependencies
+
+- functional dependency shows a relationship between attributes.
+
+- functional dependency exists when a relationship between two attributes allows you to uniquely determine the corresponding attribute's value
+
+- `B` --> `A` : `A` is functional dependent on `B` when a value of `B` determines a value of `A`
+  - `determinant` --> `dependate`
+  - `branch_id` --> `branch_assress`
+  - `student_id` --> `birth_date`
+  - `employee_id` --> `first_name`
+
+##### Normal Form
+
+- Normalizarion happens through a process of running attributes through the normal forms
+
+- `0NF` -> `1NF` -> `2NF` -> `BCBF` -> `4NF` -> `5NF` -> `6NF`
+
+- each normal form aims to furthur separate relationships into smaller instances as to create less redundancy and anomalies!
+
+- BCNF (Boyce-Codd Normal Form) or 3.5NF
+
+- 0NF to BCNF are the most common normal form
+
+- 4NF to 6NF is too extreme
+
+##### 0NF
+
+- data that unnormalized:
+  1. repeating groups of fields
+  2. positional dependence of data
+  3. non-atomic data
+
+##### 1NF
+
+1. eliminate repeating columns of the same data
+2. each attribute should contain a single value
+3. determine a primary key
+
+- example `0NF`
+  | color | quantity | price |
+  | ---------------------- | -------- | ----- |
+  | red, green, blue | 20 | 9.99 |
+  | yellow, orange, purple | 10 | 10.99 |
+  | blue, cyan | 15 | 3.99 |
+  | green, magento | 200 | 15.99 |
+
+- normalization to `1NF`
+  | 0NF | 1NF |
+  | -------- | ------------------------- |
+  | color | **table: PRODUCT** |
+  | quantity | <u>prod_id</u> \<PK> |
+  | price | quantity |
+  | | price |
+  | | <br/> |
+  | | **table: PRODUCT_COLOUR** |
+  | | <u>prod_id</u> \<FK> |
+  | | color |
+
+##### 2NF
+
+1. data need to come from `1NF`
+2. all non-key attributes are fully functional dependent on the primary key
+
+- example `0NF`
+  | Book | Author1 | Author2 | Author3 |
+  |------|---------|---------|---------|
+  | 1 | 1 | 2 | 3 |
+  | 2 | 2 | 2 | 3 |
+  | 3 | 3 | 2 | 1 |
+
+- normalization to `2NF`
+
+| 0NF    | 1NF                    | 2NF                    |
+| ------ | ---------------------- | ---------------------- |
+| book   | **table: BOOK**        | **table: BOOK**        |
+| author | <u>book_id</u> \<PK>   | <u>book_id</u> \<PK>   |
+|        | title                  | title                  |
+| <br/>  |                        |                        |
+|        | **table: BOOK_AUTHOR** | **table: BOOK_AUTHOR** |
+|        | <u>book_id</u> \<FK>   | <u>book_id</u> \<FK>   |
+|        | author_id              | <u>author_id</u> \<FK> |
+|        | author_name            |                        |
+|        | author_address         | **table: AUTHOR**      |
+|        | author_email           | <u>author_id</u> \<PK> |
+|        |                        | <u>author_id</u>       |
+|        |                        | author_name            |
+|        |                        | author_address         |
+|        |                        | author_email           |
+
+##### 3NF
+
+1. data need to come from `2NF`
+2. no transitive dependencies
+
+- `Transitive Dependency`: is `A` functionally dependent on `B`, and `B` is functionally dependent on `C`. A is transitively dependent on C via B.
+
+  - `B -> A`, `C -> B`. Thus, `A ~> C`
+
+- normalization to `3NF`
+
+| 0NF        | 1NF                 | 2NF                    | 3NF                      |
+| ---------- | ------------------- | ---------------------- | ------------------------ |
+| branch     | **table: EMPLOYEE** | **table: EMPLOYEE**    | **table: EMPLOYEE**      |
+| first name | first_name          | <u>emp_no</u> \<PK>    | <u>emp_no</u> \<PK>      |
+| last name  | last_name           | first_name             | first_name               |
+| title      | title               | last_name              | last_name                |
+| hours      | <u>emp_no</u>       | title                  | title                    |
+| <br/>      |                     |                        |                          |
+|            | **table: BRANCH**   | **table: BRANCH**      | **table: BRANCH**        |
+|            | street              | <u>branch_no</u> \<PK> | <u>branch_no</u> \<PK>   |
+|            | street_no           | street                 | street                   |
+|            | province            | street_no              | street_no                |
+|            | postal_code         | province               | <u>province_id</u> \<FK> |
+|            | <u>branch_no</u>    | postal_code            | postal_code              |
+|            | <u>emp_no</u>       | country                |                          |
+|            | hours_logged        |                        | **table: TIMESHEET**     |
+|            | country             | **table: TIMESHEET**   | <u>branch_no</u> \<FK>   |
+|            |                     | <u>branch_no</u> \<FK> | <u>emp_no</u> \<FK>      |
+|            |                     | <u>emp_no</u> \<FK>    | hours_logged             |
+|            |                     | hours_logged           |                          |
+|            |                     |                        | **table: PROVINCE**      |
+|            |                     |                        | <u>province_id</u> \<PK> |
+|            |                     |                        | country                  |
+|            |                     |                        | province                 |
+
+- though on table `BRANCH` from `2NF` tp `3NF`
+  - branch_no -> province
+  - province -> country
+  - branch_no ~> country
+
+##### BCNF
+
+1. data need to come from `3NF`
+2. for any dependency `A -> B`. `A` should be a super key
+
+- most relationships on `3NF` are also on BCNF but not all of them!
+- `3NF` allows attributes to be part of a `candidate key` that is not the `primary key` - `BCNF` does not
+
+- A relationship is not in BCNF if:
+
+  1. the primary key is a composite key
+  2. there is more than one candidate key
+  3. some attributes have keys in common
+
+- example
+
+| student_id | tutor_id | tutor_national_id |
+| ---------- | -------- | ----------------- |
+| 1          | 999      | 838 383 494       |
+| 2          | 234      | 343 535 352       |
+| 3          | 999      | 838 383 494       |
+| 4          | 1234     | 354 464 234       |
+
+- candidate:
+
+  - [student_id, tutor_id]
+  - [student_id, tutor_sin]
+
+- functionally dependent
+
+  - tutor_id -> tutor_sin
+  - tutor_sin -> tutor_id
+  - [student_id, tutor_id] -> tutor_sin
+  - [student_id, tutor_sin] -> tutor_id
+
+- normalization to BCNF
+
+| student_id | tutor_id |
+| ---------- | -------- |
+| 1          | 999      |
+| 2          | 234      |
+| 3          | 999      |
+| 4          | 1234     |
+
+| tutor_id | tutor_national_id |
+| -------- | ----------------- |
+| 999      | 838 383 494       |
+| 234      | 343 535 352       |
+| 1234     | 354 464 234       |
+
+# 4NF / 5 NF
+
+- 4NF and 5NF are not generally used
+- may results in over-normalization
