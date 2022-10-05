@@ -1,4 +1,6 @@
-Skills: `SQL`, `PostgreSQL`, `Database`, `ER Diagram`
+My note for [Complete SQL and Databases Bootcamp: Zero to Mastery](https://www.udemy.com/course/complete-sql-databases-bootcamp-zero-to-mastery/) course
+
+Skills: `SQL`, `PostgreSQL`, `Database`, `ER Diagram`, `RMDB Normalization`, `Redis`
 
 # Types of Databases
 
