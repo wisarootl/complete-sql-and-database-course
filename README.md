@@ -2202,7 +2202,288 @@ flowchart LR
 | 234      | 343 535 352       |
 | 1234     | 354 464 234       |
 
-# 4NF / 5 NF
+##### 4NF / 5 NF
 
 - 4NF and 5NF are not generally used
 - may results in over-normalization
+
+# Database Landscape, Performance and Security
+
+## Scalability
+
+- Vertical scalability : more resource in sigle machine
+- Horizontal scalability : more machines
+
+## Sharding
+
+- split data
+
+## Replication
+
+- replication data across different machine
+- eventual consistency
+- synchronous : wait for comfirms consistency from all replication before response to client (slow)
+- asynchronous : response client immediately and send update to other replication later (faster)
+
+## Backups
+
+- replication is in real time
+- backup :
+  - store the backup of entire database
+  - do not do often
+  - expensive and slow
+
+## Distributed vs. Centralized databases
+
+- Centralized databases : control by one organization
+- Distributed databases :
+  - physically distributed to multiple location.
+  - control by many organization
+
+## Security
+
+- ensure that user see only data they are authorized to see
+- prevent unthorized user from accessing database
+- prevent data corruption
+- detect and stop mulware attacks
+
+- Sanitize input
+  - format the input to what we expected
+
+## Relational vs. NoSQL
+
+- Relational
+  - Pro:
+    - data integrity (normalization, no duplication/redundancy, no analmalies)
+    - acid transaction (consistency guarantee)
+    - use SQL to query (standard way)
+  - Con:
+    - schema : need to decide what type of data what type of table to store data at the beginning
+    - harder to scale horizaltally
+    - slow for query due to it is in different table. while MongoDB, related data will be kept in the same document and lead to faster query
+
+## Future of Relational Database
+
+- NewSQL: relational with horizontal scalability
+  - e.g. `citus`, `vitess`, `google spanner`, `CockroachDB`
+
+## Elasticseach
+
+- Elasticseach:
+  - document model database
+  - good for data that we need to search
+  - especially search for text e.g. book title
+
+## Amazon S3
+
+- massive blob of data like viedo
+
+## Top Database to Use
+
+- PostgreSQL for SQL DB
+- MongoDB, Amazon Document DB, Firebase for Document storage
+- Elasticsearch for any sort oo searching of text
+- Redis is in-memory key-value store
+- Amazon S3 for blob store
+
+# Data Engineering
+
+## Big Data + Analytics
+
+- replicate data from production relational database to somthine like Hadoop or another type of database that is optimized form big data and analytics
+
+more: https://github.com/wisarootl/complete-machine-learning-and-data-science-bootcamp/blob/main/04-data-engineering.ipynb
+
+# Redis
+
+## Caching
+
+- use CND to cache:
+  - HTML / Javascript file. no need to traverse to server
+- cache on server for:
+  - API request
+  - databases
+  - memory store
+
+## Redis
+
+- NoSQL, in-memory database
+- classification of NoSQL
+  - Key-Value: `Redis`
+  - Document: `MongoDB`, `CouchDB`
+  - Wide Column: `cassandra`
+  - Graph: `Neo4j`
+- in-memory DB -> very fast
+- used for short lived data
+- small data (due to in-memory)
+
+## Redis command
+
+- Redis is key value store
+
+```
+SET <key> <value>
+```
+
+- set <value> in <key>
+
+```
+GET <key>
+```
+
+- get <value> of <key>
+
+```
+EXISTS <key>
+```
+
+- return 0 if there is no <key>, 1 if there is <key>
+
+```
+DEL <key>
+```
+
+- delete <key>, return 1 if success, 0 if fail
+
+```
+EXPIRE <key> <seconds>
+```
+
+- set expire for <key> in <seconds>
+
+```
+INCR <key> // value of key = value of key + 1
+INCRBY <key> <value> // value of key = value of key + <value>
+
+DECR <key> // value of key = value of key - 1
+DECRBY <key> <value> // value of key = value of key - <value>
+```
+
+```
+MSET a 2 b 5
+```
+
+- multiple set `a = 2` and `b = 5`
+
+```
+MGET a b
+```
+
+- multiple get for `a` and `b`
+
+## Radis Data Types
+
+1. String
+2. Hashes (Hash table)
+3. Lists (linked list)
+4. Set
+5. Sorted sets
+
+### Hashes (hash table)
+
+```
+HMSET user id 45 name "john"
+
+// correspond to python command below
+user = {'id': 45, 'name': 'john'}
+```
+
+```
+HGET user id
+
+// return '45'
+```
+
+```
+HGET user name
+
+// return 'john'
+```
+
+```
+HGETALL user
+
+// return
+// 1) "id"
+// 2) "45"
+// 3) "name"
+// 4) "john"
+```
+
+### Lists (linked list)
+
+- fast for insert
+- slow to get
+
+```
+LPUSH outlist 10
+
+// left push
+```
+
+```
+RPUSH outlist "hello"
+
+// right push
+```
+
+```
+LRANGE <list-name> <start> <end>
+LRANGE outlist 0 1
+
+// get left of list since start to end
+// return
+// 1) "10"
+// 2) "hello"
+```
+
+```
+RPOP
+
+// pop right
+```
+
+### Set
+
+- similar to list but no duplicated element
+
+```
+// set add
+SADD ourset 1 2 3 4 5
+```
+
+```
+// set get
+SMEMBERS ourset 1 2 3 4
+```
+
+```
+// return 0, 1 whether the value is in the set or not
+SISMEMBERS ourset 1
+```
+
+### Sorted Set
+
+```
+// sorted set add
+ZADD team 1 "Bolts"
+ZADD team 50 "Wizards"
+ZADD team 40 "Cavalier"
+```
+
+```
+// sorted set get
+ZRANGE team 0 2
+
+// return by ascending score
+// 1) "Bolts"
+// 2) "Cavaliers"
+// 3) "Wizards"
+```
+
+```
+ZRANK team "Wizards"
+
+// retun rank of "Wizards" (start from 0)
+// 2
+```
