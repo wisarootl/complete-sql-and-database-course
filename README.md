@@ -885,6 +885,19 @@ CREATE INDEX <name>
 on <table> (column1) <expression>
 ```
 
+### Non-key column indexing
+
+- include non-key column when create index
+
+- no need to go to heap to get value in column 2
+
+- if index table is too big, it will not fit to memory and it will be slow for scan
+
+```sql
+CREATE INDEX <name>
+on <table> (<key-column1>) include (<non-key-column2>)
+```
+
 ### Implicit index
 
 - automatically create by the database:
@@ -927,7 +940,7 @@ ON <table> USING <method> (column1, ...)
 
 - Hash
 
-  - can only handle =
+  - can only handle `=`
 
 - GIN (Generalized Inverted Index)
 
